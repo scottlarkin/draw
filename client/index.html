@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <title></title>
+    <meta content="">
+    <style></style>
+  </head>
+  <body>
+  
+    <canvas id="myCanvas" width="1500" height="900" style="border:1px solid #000000;"></canvas>
+    
+  
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script>
+          
+      var socket = io('http://localhost:7000');
+      
+      
+    
+      socket.on('updatedPixels', function(data){
+        data.forEach(function(pixel){
+          drawPixel(pixel[0], pixel[1], 0,0,0, 255);
+        });
+        
+      });
+      
+      
+      var mouseDown = false;
+      var mousePosOld;
+      var mousePos;
+      var canvas = $('#myCanvas');
+      
+      var canvasWidth = canvas[0].width;
+      var canvasHeight = canvas[0].height;
+      var ctx = canvas[0].getContext("2d");
+      var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+      
+      function drawPixel (x, y, r, g, b, a) {
+        var index = (x + y * canvasWidth) * 4;
+        canvasData.data[index + 0] = r;
+        canvasData.data[index + 1] = g;
+        canvasData.data[index + 2] = b;
+        canvasData.data[index + 3] = a;
+      }
+      
+      function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();        
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+      
+      canvas.mousedown(function(e){
+        mouseDown = true;
+        mousePos = getMousePos(canvas[0], e);
+        mousePosOld = mousePos;
+      });
+      
+      canvas.mouseup(function(e){
+        mouseDown = false;
+      });
+      
+      canvas.mousemove(function(e){
+        if(mouseDown){
+          mousePosOld = mousePos;
+          mousePos = getMousePos(canvas[0], e);
+        }
+      });
+      
+      function vecLerp(x1,y1,x2,y2,t){
+        return {
+          x: (x1*t) + (x2*(1-t)),
+          y: (y1*t) + (y2*(1-t))
+        }
+      }
+      
+      setInterval(function(){ 
+        
+        if(mouseDown){
+          var dims = 10;
+          var pixels = [];
+          var xd = Math.abs(mousePos.x - mousePosOld.x);
+          var yd = Math.abs(mousePos.y - mousePosOld.y);
+          var len = (xd*xd) + (yd*yd);
+          var step = len/dims;
+         // console.log(len + '   ' + step);
+         
+        
+         // console.log(mousePos.y + '   ' + mousePosOld.y);
+          for(var l = 0; l < 1; l+= 0.3){
+                          
+            var newVec = vecLerp(mousePos.x, mousePos.y, mousePosOld.x, mousePosOld.y, l);
+            var newVec = vecLerp(540,101,541,600, l);
+            
+            console.log(newVec.y);
+            
+            for(var i = -dims/2; i < dims/2; i++){
+              for(var j = -dims/2; j < dims/2; j++){
+
+                
+                drawPixel(newVec.x + i, newVec.y + j, 0,0,0, 255);
+                
+                pixels.push([newVec.x + i, newVec.y + j, 1]);
+              }
+            }
+
+          /*
+            for(var i = -dims/2; i < dims/2; i++){
+              for(var j = -dims/2; j < dims/2; j++){
+                drawPixel(mousePos.x + i, mousePos.y + j, 0,0,0, 255);
+                pixels.push([mousePos.x + i, mousePos.y + j, 1]);
+              }
+            }
+            */
+
+          }
+        
+         socket.emit('updatePixels', { canvas:0, pixels: pixels})
+        }
+        ctx.putImageData(canvasData, 0, 0);
+        
+      }, 10);
+      
+    </script>
+  </body>
+</html>
