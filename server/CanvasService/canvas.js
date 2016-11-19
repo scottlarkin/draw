@@ -2,6 +2,10 @@
 
     'use strict'
 
+    var brushFunctions = {
+        0 : squareBrush
+    }
+
     function Canvas(id, width, height){
 
         return {
@@ -14,6 +18,21 @@
     }
 
     var canvases = [];
+
+    function squareBrush(canvasId, brushSize, updatePixels){
+
+        return function(pixel){
+
+            for(var i = -brushSize; i < brushSize; i++){
+                let x = pixel[0] + i;
+                for(var j = -brushSize; j < brushSize; j++){
+                    let y =  pixel[1] + j;
+                    exports.setPixel(canvasId, x, y, pixel[2]);
+                    updatePixels.push([x, y, pixel[2]]);
+                }
+            }
+        }
+    }
 
     function init(canvasId){
 
@@ -41,4 +60,25 @@
     exports.getPixel = function(canvasId, x,y){
         return canvases[canvasId].canvas[y][x];
     }
+
+    exports.updateCanvas = function(data){
+
+        let canvasId = data.canvas;
+        let pixels = data.changes.pixels;
+        let brushType = data.changes.brushType;
+        let brushSize = data.changes.brushSize * 0.5;
+
+        var updatePixels = [];
+
+        let brush = brushFunctions[brushType](canvasId, brushSize, updatePixels);
+        
+        //update the internal state of the canvas
+        pixels.forEach( pixel => {
+            brush(pixel);
+        });
+
+        return updatePixels;
+
+    }
+
 })();
