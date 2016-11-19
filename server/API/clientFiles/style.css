@@ -1,0 +1,26 @@
+
+body{
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    background-color: #333;
+    color:white;
+}
+
+.headerContainer{
+    width:100%;
+    height:100px;
+}
+
+.sidebarContainer{
+    float:left;
+    width:200px;
+    position:fixed;
+    top: 100px;
+}
+
+#myCanvas{
+    float:left;
+    position: relative;
+    left:200px;
+    background-color: white;
+}

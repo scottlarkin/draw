@@ -1,12 +1,28 @@
 <html>
-
-  <body>
-  
-    <canvas id="myCanvas" width="1500" height="900" style="border:1px solid #000000;"></canvas>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body ng-app="draw">
     
-  
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <header></header>
+    <side-bar></side-bar>
+    <my-canvas></my-canvas>
+    <footer></footer>
+
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <script src="clientFiles/scripts/canvas.js"></script>
+    <script src="app.js"></script>
+    <script src="common/services/canvasService.js"></script>
+    <script src="common/services/socketInterfaceService.js"></script>
+    <script src="components/canvas/canvas.js"></script>
+    <script src="components/canvas/canvasController.js"></script>
+    <script src="components/header/header.js"></script>
+    <script src="components/header/headerController.js"></script>
+    <script src="components/footer/footer.js"></script>
+    <script src="components/footer/footerController.js"></script>
+    <script src="components/sidebar/sidebar.js"></script>
+    <script src="components/sidebar/sidebarController.js"></script>
+    
   </body>
 </html>
