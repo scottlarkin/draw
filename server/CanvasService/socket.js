@@ -2,27 +2,31 @@
 
     'use strict'
 
-    var canvas = require('./canvas.js');
-
     var io = require('socket.io').listen(7000);
 
     var num = 0;
 
-    io.on('connection', function(socket){
+    var socket;
+    var pendingResponses = [];
 
-        console.log( 'connected ' + ++num);
+    io.on('connection', function(s){
+        console.log('connected');
+        socket = s;
 
-        socket.on('updateCanvas', onPixelUpdate(socket));
+        pendingResponses.forEach(r => exports.registerResponse(r.message, r.callback))
 
     });
 
-    function onPixelUpdate(socket){
-        return function(data){
-            
-            //notify all other connected users that the canvas has changed
-            socket.broadcast.emit('updatedPixels', canvas.updateCanvas(data));
+    exports.registerResponse = (message, callback) => {
+        
+        if(!socket){
+            pendingResponses.push({message: message, callback: callback});
+            return;
         }
+
+        console.log('activated ' + message);
+        socket.on(message, callback(socket));
     }
-    
+
 })();
 

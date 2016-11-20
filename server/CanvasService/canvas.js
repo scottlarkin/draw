@@ -6,20 +6,21 @@
         0 : squareBrush
     }
 
-    function Canvas(id, width, height){
+    exports.Canvas = function(id, width, height){
 
-        return {
-
+        var ret = {
             'id': id,
             'width': width,
             'height': height,
-            canvas: []
+            'canvas': []
         }
-    }
 
-    var canvases = [];
+        init(ret);
+    
+        return ret;
+    };
 
-    function squareBrush(canvasId, brushSize, updatePixels){
+    function squareBrush(canvas, brushSize, updatePixels){
 
         return function(pixel){
 
@@ -27,34 +28,28 @@
                 let x = pixel[0] + i;
                 for(var j = -brushSize; j < brushSize; j++){
                     let y =  pixel[1] + j;
-                    exports.setPixel(canvasId, x, y, pixel[2]);
+                    exports.setPixel(canvas, x, y, pixel[2]);
                     updatePixels.push([x, y, pixel[2]]);
                 }
             }
         }
     }
 
-    function init(canvasId){
+    function init(canvas){
+        console.log(canvas);
+        for(var y = 0; y < canvas.height; y++){
 
-        let canvasObj = canvases[canvasId];
-        let canvas = canvasObj.canvas;
+            canvas.canvas.push([]);
+            for(var x = 0; x < canvas.width; x++){
 
-        for(var y = 0; y < canvasObj.height; y++){
-
-            canvas.push([]);
-            for(var x = 0; x < canvasObj.width; x++){
-
-                canvas[y].push(0);
+                canvas.canvas[y].push(0);
             }
         }
     }
 
-    canvases.push(new Canvas(canvases.length, 1920, 1080 ));
-    init(0);
-
     //exports
-    exports.setPixel = function(canvasId, x, y, val){
-        return canvases[canvasId].canvas[y][x] = val;
+    exports.setPixel = function(canvas, x, y, val){
+        return canvas.canvas[y][x] = val;
     }
 
     exports.getPixel = function(canvasId, x,y){
@@ -63,14 +58,14 @@
 
     exports.updateCanvas = function(data){
 
-        let canvasId = data.canvas;
+        let canvas = data.canvas;
         let pixels = data.changes.pixels;
         let brushType = data.changes.brushType;
         let brushSize = data.changes.brushSize * 0.5;
 
         var updatePixels = [];
 
-        let brush = brushFunctions[brushType](canvasId, brushSize, updatePixels);
+        let brush = brushFunctions[brushType](canvas, brushSize, updatePixels);
         
         //update the internal state of the canvas
         pixels.forEach( pixel => {
@@ -78,7 +73,6 @@
         });
 
         return updatePixels;
-
     }
 
 })();

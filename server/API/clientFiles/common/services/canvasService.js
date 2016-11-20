@@ -20,9 +20,21 @@
             }
         }
 
-        (function(){
+        function startCanvas(){
 
-            var dims = 30;
+            socketInterfaceService.emitMessage('joinCanvas', {canvas: 0});
+
+            //tell the socket interface what to do when it gets the message 'updatedPixels'
+            socketInterfaceService.registerResponse('updatedPixels', function(data){
+
+                data.forEach(function(pixel){
+                    drawPixel(pixel[0], pixel[1], 0,0,0, 255);
+                });
+
+                cs.ctx.putImageData(cs.canvasData, 0, 0);
+            });
+
+            var dims = 6;
             var dimsSqr = dims*dims; //sqr this here so i dont have to sqrt a vector length later
 
             setInterval(function(){ 
@@ -68,25 +80,25 @@
                     cs.mousePosOld = cs.mousePos;
                 }
             
-            }, 30);
+            }, 15);
 
-        })();
+        };
 
-        //tell the socket interface what to do when it gets the message 'updatedPixels'
-        socketInterfaceService.registerResponse('updatedPixels', function(data){
-
-            data.forEach(function(pixel){
-                drawPixel(pixel[0], pixel[1], 0,0,0, 255);
-            });
-
-            cs.ctx.putImageData(cs.canvasData, 0, 0);
-        });
+        
 
         var cs = {};
 
         cs.mouseDown;
         cs.mousePos;
         cs.mousePosOld;
+        
+        var loading = true;
+
+        cs.init = function(){
+            loading = false;
+            startCanvas();
+            console.log('started');
+        }
 
         cs.setCanvas = function(canvas){
             cs.canvas = canvas;
