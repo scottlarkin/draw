@@ -15,12 +15,13 @@
     });
 
     app.get('/home',(req, res) => {
+        
         res.sendFile('clientFiles/index.html', { root: __dirname });
     });
 
     app.get('/getAvailableService', (req, res) => {
 
-        rabbit.sendMessage('queue', '', msg => res.send(msg));
+        rabbit.sendMessage('getAvailableCanvasService', '', msg => res.send(msg));
         
     });
 

@@ -3,10 +3,6 @@
     'use strict'
 
     var io = require('socket.io').listen(7000);
-
-    var num = 0;
-
-    var socket;
     var messageResponses = [];
 
     io.on('connection', function(s){

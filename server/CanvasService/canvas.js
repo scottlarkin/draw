@@ -16,7 +16,9 @@
         }
 
         init(ret);
-    
+        
+        console.log('New canvas created, ID: ' + id);
+
         return ret;
     };
 
@@ -36,7 +38,7 @@
     }
 
     function init(canvas){
-        console.log(canvas);
+    
         for(var y = 0; y < canvas.height; y++){
 
             canvas.canvas.push([]);

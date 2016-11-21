@@ -3,7 +3,7 @@
     'use strict'
 
     var amqp = require('amqplib/callback_api');
-    const uuid = require('uuid');
+    var uuid = require('uuid');
 
     var connection;
     var channel;

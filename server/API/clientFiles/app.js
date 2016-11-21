@@ -5,7 +5,7 @@
 
     angular.module('draw', [])
     .controller('appController', function($http, socketInterfaceService, canvasService){
-
+       
         $http({
                 method: 'GET',
                 url: '/getAvailableService'

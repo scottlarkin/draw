@@ -6,53 +6,74 @@
     var canvas = require('./canvas.js');
 
     var canvasClients = {};
+    var clientCanvas = {};
 
     function createCanvas(canvasID){
 
-        var c = new canvas.Canvas(canvasID, 1920, 1080 );
+        //todo, allow dynamic canvas size, get from client web page
+        var c = new canvas.Canvas(canvasID, 1500, 900 );
         c.clients = [];
-
         canvasClients[canvasID] = c;
     }
 
-    createCanvas(0);
-
-    socket.registerResponse('updateCanvas', (socket) => {
+    socket.registerResponse('updateCanvas', (s) => {
 
         return (data) => {
 
-            data.canvas = canvasClients[data.canvas];
+            let canvasId = data.canvas;
 
-            socket.broadcast.emit('updatedPixels', canvas.updateCanvas(data));
+            data.canvas = canvasClients[canvasId];
+            
+            //only send updated pixels to clients in the same canvas instance
+            s.broadcast.to(canvasId).emit('updatedPixels', canvas.updateCanvas(data));
         }
     });
 
-    socket.registerResponse('joinCanvas', (socket) => {
+    socket.registerResponse('joinCanvas', (s) => {
 
         return (data) => {
 
-            console.log('someone joined');
-
-            canvasClients[data.canvas].clients.push(socket);
-        }
-    });
-
-    socket.registerResponse('disconnect', (socket) => {
-	/*
-	console.log(socket);
-        return (data) => {
-            var index = clients.indexOf(socket);
-            if (index != -1) {
-                console.log('someone left');
-                clients.splice(index, 1);
-                console.info('Client gone (id=' + socket.id + ').');
+            if(!canvasClients[data.canvas]){
+                createCanvas(data.canvas);
             }
-        }
-	*/
 
-	return (data) => {};
+            canvasClients[data.canvas].clients.push(s);
+            clientCanvas[s.id] = data.canvas;
+            s.join(data.canvas);
+        }
     });
- 
+
+    socket.registerResponse('disconnect', (s) => {
+        
+        return () => {
+            
+            var c = clientCanvas[s.id];
+
+            if(typeof(c) != 'undefined' && c != null){
+
+                console.log('client disconnected');
+
+                var index = canvasClients[c].clients.indexOf(s);
+
+                if (index != -1) {
+                    
+                    var clients = canvasClients[c].clients;
+
+                    clients.splice(index, 1);
+
+                    if(!clients.length){
+                        console.log('All clients disconnected from canvas: ' + c + '... Deleting canvas');
+                        delete canvasClients[c];
+                    }
+
+                }
+
+                delete clientCanvas[s.id];
+            }
+
+        }
+
+    });
 
 })();
 

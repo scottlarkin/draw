@@ -3,7 +3,7 @@
     'use strict'
 
     angular.module('draw')
-    .service('canvasService', function(socketInterfaceService){
+    .service('canvasService', function($location, socketInterfaceService, brushService){
 
         function drawPixel (x, y, r, g, b, a) {
             var index = (x + y * cs.canvasWidth) * 4;
@@ -21,21 +21,33 @@
         }
 
         function startCanvas(){
+            
+            var canvasIda = $location.absUrl().split('canvas=')[1];
+            var canvasId = canvasIda ? canvasIda.split('&')[0] : null;
 
-            socketInterfaceService.emitMessage('joinCanvas', {canvas: 0});
+            var updateCanvas = function(){};
 
-            //tell the socket interface what to do when it gets the message 'updatedPixels'
-            socketInterfaceService.registerResponse('updatedPixels', function(data){
+            if(canvasId){
+                socketInterfaceService.emitMessage('joinCanvas', {canvas: canvasId});
 
-                data.forEach(function(pixel){
-                    drawPixel(pixel[0], pixel[1], 0,0,0, 255);
+                //tell the socket interface what to do when it gets the message 'updatedPixels'
+                socketInterfaceService.registerResponse('updatedPixels', function(data){
+
+                    data.forEach(function(pixel){
+                        drawPixel(pixel[0], pixel[1], 0,0,0, 255);
+                    });
+
+                    cs.ctx.putImageData(cs.canvasData, 0, 0);
                 });
 
-                cs.ctx.putImageData(cs.canvasData, 0, 0);
-            });
+                updateCanvas = function(changes){
+                    socketInterfaceService.emitMessage('updateCanvas',{ canvas:canvasId, changes: changes});
+                };
+            }
 
             var dims = 6;
             var dimsSqr = dims*dims; //sqr this here so i dont have to sqrt a vector length later
+            var brush = brushService.getBrush(0, drawPixel);
 
             setInterval(function(){ 
                 
@@ -46,8 +58,8 @@
                     //let the server know what kind of brush is being used and which pixels are hit by it
                     var changes = {
                         pixels:[],
-                        brushType: 0,
-                        brushSize: dims
+                        brushType: brushService.brushType,
+                        brushSize: brushService.brushSize
                     }
 
                     var pixels = changes.pixels;
@@ -67,15 +79,11 @@
 
                         pixels.push([x, y, 1]);
 
-                        //fill in a square around the mouse position
-                        for(var i = -dims/2; i < dims/2; i++){
-                            for(var j = -dims/2; j < dims/2; j++){
-                                drawPixel(x + i, y + j, 0,255,0, 255);
-                            }
-                        }
+                        //apply the brush function to the pixel
+                        brushService.brush(x, y);
                     }
-                    
-                    socketInterfaceService.emitMessage('updateCanvas',{ canvas:0, changes: changes});
+
+                    updateCanvas(changes);
                     cs.ctx.putImageData(cs.canvasData, 0, 0);
                     cs.mousePosOld = cs.mousePos;
                 }
