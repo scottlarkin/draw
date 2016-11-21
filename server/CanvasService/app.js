@@ -29,8 +29,6 @@
 
     socket.registerResponse('joinCanvas', (socket) => {
 
-        console.log('peanut');
-
         return (data) => {
 
             console.log('someone joined');
@@ -40,7 +38,8 @@
     });
 
     socket.registerResponse('disconnect', (socket) => {
-
+	/*
+	console.log(socket);
         return (data) => {
             var index = clients.indexOf(socket);
             if (index != -1) {
@@ -49,6 +48,9 @@
                 console.info('Client gone (id=' + socket.id + ').');
             }
         }
+	*/
+
+	return (data) => {};
     });
  
 

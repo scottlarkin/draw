@@ -7,25 +7,17 @@
     var num = 0;
 
     var socket;
-    var pendingResponses = [];
+    var messageResponses = [];
 
     io.on('connection', function(s){
         console.log('connected');
-        socket = s;
 
-        pendingResponses.forEach(r => exports.registerResponse(r.message, r.callback))
+        messageResponses.forEach(r => s.on(r.message, r.callback(s)));
 
     });
 
-    exports.registerResponse = (message, callback) => {
-        
-        if(!socket){
-            pendingResponses.push({message: message, callback: callback});
-            return;
-        }
-
-        console.log('activated ' + message);
-        socket.on(message, callback(socket));
+    exports.registerResponse = (message, callback) => {  
+        messageResponses.push({message: message, callback: callback});
     }
 
 })();

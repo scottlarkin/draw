@@ -13,6 +13,7 @@
             .then(function(response) {
                 socketInterfaceService.setPort(response.data);
                 canvasService.init();
+                console.log(response);
             });
 
     });

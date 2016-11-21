@@ -5,8 +5,7 @@
     
     var amqp = require('amqplib/callback_api');
     
-    var port = 8000;
-
+    var port = 7000;
     amqp.connect('amqp://localhost', function(err, conn) {
         conn.createChannel(function(err, ch) {
             var q = 'queue';
