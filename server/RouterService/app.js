@@ -26,7 +26,9 @@
     var externalip = require('externalip');
 
     externalip(function (err, ip) {
-       ip = ip;
+        console.log(ip);
+        console.log(err);
+        ip = ip;
     });
 
     var port = 7000;
