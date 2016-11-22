@@ -22,7 +22,8 @@
     'use strict'
     
     var amqp = require('amqplib/callback_api');
-    
+    var ip = require("ip");
+
     var port = 7000;
 
     amqp.connect('amqp://localhost', function(err, conn) {
@@ -35,8 +36,8 @@
             
             ch.consume(q, function reply(msg) {
 
-                var r = port;
-
+                var r = ip.address() + ':' + port;
+                console.log(r);
                 ch.sendToQueue(msg.properties.replyTo,
                     new Buffer(r.toString()),
                     {correlationId: msg.properties.correlationId});
