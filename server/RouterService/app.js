@@ -22,7 +22,6 @@
     'use strict'
     
     var amqp = require('amqplib/callback_api');
-    var ip = require("ip");
     var externalip = require('externalip');
 
     externalip(function (err, ip) {
