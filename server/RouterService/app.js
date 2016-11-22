@@ -23,6 +23,11 @@
     
     var amqp = require('amqplib/callback_api');
     var ip = require("ip");
+    var externalip = require('externalip');
+
+    externalip(function (err, ip) {
+       ip = ip;
+    });
 
     var port = 7000;
 
@@ -36,7 +41,7 @@
             
             ch.consume(q, function reply(msg) {
 
-                var r = ip.address() + ':' + port;
+                var r = ip + ':' + port;
                 console.log(r);
                 ch.sendToQueue(msg.properties.replyTo,
                     new Buffer(r.toString()),
