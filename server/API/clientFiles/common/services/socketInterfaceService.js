@@ -10,7 +10,7 @@
         var sis = {};
 
         sis.setPort = function(port){
-            socket = io('http://localhost:' + port);
+            socket = io('0.0.0.0:' + port);
         }
 
         sis.registerResponse = function(message, response){
