@@ -26,7 +26,9 @@
         bs.brushType = 0;
         bs.brushSize = 6;
         bs.brushColour = {r:0, g:0, b:0};
-        bs.brushColourHex = 0x000;
+        bs.brushColourHex = 0x000000;
+        
+        console.log(bs.brushColourHex);
 
         bs.getBrush = function(type, callback){
 

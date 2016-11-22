@@ -32,7 +32,7 @@
     socket.registerResponse('joinCanvas', (s) => {
 
         return (data) => {
-
+            
             if(!canvasClients[data.canvas]){
                 createCanvas(data.canvas);
             }
@@ -40,6 +40,9 @@
             canvasClients[data.canvas].clients.push(s);
             clientCanvas[s.id] = data.canvas;
             s.join(data.canvas);
+            
+            //send the current state of the canvas to the client
+            s.emit('canvasData', canvasClients[data.canvas].canvas);
         }
     });
 

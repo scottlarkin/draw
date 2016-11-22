@@ -33,16 +33,37 @@
                 //tell the socket interface what to do when it gets the message 'updatedPixels'
                 socketInterfaceService.registerResponse('updatedPixels', function(data){
 
-                    data.forEach(function(pixel){
-                        drawPixel(pixel[0], pixel[1], 0,0,0, 255);
+                    data.pixels.forEach(function(pixel){
+                        drawPixel(pixel[0], pixel[1], data.colour >> 16 & 255, data.colour >> 8 & 255, data.colour & 255, 255);
                     });
 
                     cs.ctx.putImageData(cs.canvasData, 0, 0);
                 });
 
+                //response to the server sending the full canvas data on load
+                socketInterfaceService.registerResponse('canvasData', function(data){
+
+                    for(var y = 0; y < 900; y++){
+                        for(var x = 0; x < 1500; x++){
+                          
+                            var col = data[y][x];
+                            drawPixel(x, y, col >> 16 & 255, col >> 8 & 255, col & 255, 255);
+                        }
+                    }
+
+                    cs.ctx.putImageData(cs.canvasData, 0, 0);
+
+                    loading = false;
+                });
+
+                //what to send to the sever when pixels are changed 
                 updateCanvas = function(changes){
                     socketInterfaceService.emitMessage('updateCanvas',{ canvas:canvasId, changes: changes});
                 };
+                
+            }
+            else{
+                loading = false;
             }
 
             var dims = 6;
@@ -51,16 +72,17 @@
 
             setInterval(function(){ 
                 
-                if(cs.mouseDown){
-
-                    //todo- move this out of canvas service... brush.js?
+                if(cs.mouseDown && !loading){
 
                     //let the server know what kind of brush is being used and which pixels are hit by it
                     var changes = {
                         pixels:[],
                         brushType: brushService.brushType,
-                        brushSize: brushService.brushSize
-                    }
+                        brushSize: brushService.brushSize,
+
+                        //todo- do this compression once per colour change in the service...
+                        brushColour: (brushService.brushColour.r << 16) + (brushService.brushColour.g << 8) + brushService.brushColour.b
+                    };
 
                     var pixels = changes.pixels;
                     var xd = Math.abs(cs.mousePos.x - cs.mousePosOld.x);
@@ -77,13 +99,16 @@
                         var x = (newVec.x >> 0);
                         var y = (newVec.y >> 0);
 
-                        pixels.push([x, y, 1]);
+                        pixels.push([x, y]);
 
                         //apply the brush function to the pixel
-                        brushService.brush(x, y);
+                        brush(x, y);
                     }
 
+                    //send changes to server (if connected to a server)
                     updateCanvas(changes);
+                    
+                    //update the canvas element
                     cs.ctx.putImageData(cs.canvasData, 0, 0);
                     cs.mousePosOld = cs.mousePos;
                 }
@@ -91,8 +116,6 @@
             }, 15);
 
         };
-
-        
 
         var cs = {};
 
@@ -103,9 +126,8 @@
         var loading = true;
 
         cs.init = function(){
-            loading = false;
+            
             startCanvas();
-            console.log('started');
         }
 
         cs.setCanvas = function(canvas){

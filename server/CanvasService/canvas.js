@@ -22,7 +22,7 @@
         return ret;
     };
 
-    function squareBrush(canvas, brushSize, updatePixels){
+    function squareBrush(canvas, brushSize, brushColour, updatePixels){
 
         return function(pixel){
 
@@ -30,8 +30,8 @@
                 let x = pixel[0] + i;
                 for(var j = -brushSize; j < brushSize; j++){
                     let y =  pixel[1] + j;
-                    exports.setPixel(canvas, x, y, pixel[2]);
-                    updatePixels.push([x, y, pixel[2]]);
+                    exports.setPixel(canvas, x, y, brushColour);
+                    updatePixels.push([x, y, brushColour]);
                 }
             }
         }
@@ -39,12 +39,14 @@
 
     function init(canvas){
     
+        let white = (255 << 16) + (255 << 8) + 255;
+
         for(var y = 0; y < canvas.height; y++){
 
             canvas.canvas.push([]);
             for(var x = 0; x < canvas.width; x++){
 
-                canvas.canvas[y].push(0);
+                canvas.canvas[y].push(white);
             }
         }
     }
@@ -64,17 +66,18 @@
         let pixels = data.changes.pixels;
         let brushType = data.changes.brushType;
         let brushSize = data.changes.brushSize * 0.5;
+        let colour = data.changes.brushColour;
 
         var updatePixels = [];
 
-        let brush = brushFunctions[brushType](canvas, brushSize, updatePixels);
+        let brush = brushFunctions[brushType](canvas, brushSize, colour, updatePixels);
         
         //update the internal state of the canvas
         pixels.forEach( pixel => {
             brush(pixel);
         });
 
-        return updatePixels;
+        return {colour: colour, pixels: updatePixels};
     }
 
 })();
