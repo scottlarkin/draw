@@ -6,6 +6,12 @@
     .service('canvasService', function($http, $location, socketInterfaceService, brushService){
 
         function drawPixel (x, y, r, g, b, a) {
+
+            if(x < 0) return;
+            if(x > 1499) return;
+            if(y < 0) return;
+            if(y > 899) return;
+
             var index = (x + y * cs.canvasWidth) * 4;
             cs.canvasData.data[index + 0] = r;
             cs.canvasData.data[index + 1] = g;
@@ -33,9 +39,16 @@
 
                 $http({
                         method: 'GET',
-                        url: '/getAvailableService'
+                        url: '/getAvailableService/' + canvasId
                 })
                 .then(function(response) {
+
+                    //hackiest thing ever
+                    if(response.data[0] === 'T'){
+                        alert(response.data);
+                        return;
+                    }
+
                     socketInterfaceService.setPort(response.data);
                     
                     socketInterfaceService.emitMessage('joinCanvas', {canvas: canvasId});

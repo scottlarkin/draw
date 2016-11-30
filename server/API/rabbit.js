@@ -12,25 +12,26 @@
     var pendingRequests = {};
 
     //connect to rabbitMQ
-    amqp.connect('amqp://localhost', function(err, conn) {
+    amqp.connect('amqp://localhost', (err, conn) => {
 
         connection = conn;
 
-        conn.createChannel(function(err, ch) {
+        conn.createChannel( (err, ch) => {
 
             channel = ch;
             
-            ch.assertQueue('', {exclusive: true}, function(err, q) {
+            ch.assertQueue('', {exclusive: true}, (err, q) => {
                 
                 queue = q;
-                channel.consume(queue.queue, function(msg) {
+                channel.consume(queue.queue, (msg) => {
                     
                     let callback = pendingRequests[msg.properties.correlationId];
 
                     if(callback){
                         callback(msg.content.toString());
-                        delete pendingRequests[msg.properties.correlationId];
                     }
+
+                    delete pendingRequests[msg.properties.correlationId];
 
                 }, {noAck: true});
 
@@ -39,7 +40,7 @@
     });
 
 
-    exports.sendMessage = function(q, message, callback){
+    exports.sendMessage = (q, message, callback) => {
 
         let msgId = uuid();
 

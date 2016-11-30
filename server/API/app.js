@@ -19,10 +19,10 @@
         res.sendFile('clientFiles/index.html', { root: __dirname });
     });
 
-    app.get('/getAvailableService', (req, res) => {
+    app.get('/getAvailableService/:canvasId', (req, res) => {
 
-        rabbit.sendMessage('getAvailableCanvasService', '', msg => res.send(msg));
-        
+        rabbit.sendMessage('getAvailableCanvasService', req.params.canvasId, msg => res.send(msg));
+
     });
 
  })();

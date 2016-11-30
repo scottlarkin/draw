@@ -15,9 +15,13 @@
     const w = canvasWidth / canvasPartitionSize;
     const h = canvasHeight / canvasPartitionSize;
 
-   
     function SetP(canvas, x, y, r, g, b){
         
+        if(x < 0) return;
+        if(x > canvasWidth-1) return;
+        if(y < 0) return;
+        if(y > canvasHeight-1) return;
+
         let i = (x / w) << 0;
         let j = (y / h) << 0;
         let sx = i * w;
@@ -63,9 +67,9 @@
 
         return (pixel) => {            
 
-            for(var i = -brushSize; i < brushSize; i++){
+            for(let i = -brushSize; i < brushSize; i++){
                 let x = pixel[0] + i;
-                for(var j = -brushSize; j < brushSize; j++){
+                for(let j = -brushSize; j < brushSize; j++){
                     let y =  pixel[1] + j;
 
                     SetP(canvas, x, y, r, g, b);
@@ -83,7 +87,7 @@
             'id': id,
             'canvas': (()=>{
 
-                var arr = [];
+                let arr = [];
 
                 let byteCount = w * h * pixelByteSize;
 
@@ -116,12 +120,12 @@
     //returns a list of canvas segments which have been changed
     exports.GetDirtyViews = (canvas) => {
 
-        var ret = [];
+        let ret = [];
 
         for(let i = 0; i < canvasPartitionSize; i++){
             for(let j = 0; j < canvasPartitionSize; j++){
 
-                var c = canvas.canvas[i][j];
+                let c = canvas.canvas[i][j];
 
                 if(c.live){
                    ret.push({x: i, y: j, data: c.buffer});
@@ -140,9 +144,7 @@
         let brushType = data.changes.brushType;
         let brushSize = data.changes.brushSize * 0.5;
         let colour = data.changes.brushColour;
-
-        var updatePixels = [];
-
+        let updatePixels = [];
         let brush = brushFunctions[brushType](canvas, brushSize, colour, updatePixels);
         
         //update the internal state of the canvas

@@ -6,6 +6,7 @@
 
     var socket = require('./socket.js');
     var canvas = require('./canvas.js');
+    var rabbit = require('../API/rabbit.js');
 
     var canvasClients = {};
     var clientCanvas = {};
@@ -15,6 +16,10 @@
         var c = new canvas.Canvas(canvasID);
         c.clients = [];
         canvasClients[canvasID] = c;
+
+        rabbit.sendMessage('addCanvas', canvasID);
+
+        console.log('msg sent');
     }
 
     socket.registerResponse('updateCanvas', (s) => {
@@ -68,15 +73,14 @@
                     if(!clients.length){
                         console.log('All clients disconnected from canvas: ' + c + '... Deleting canvas');
                         delete canvasClients[c];
-                    }
 
+                        rabbit.sendMessage('removeCanvas', c);
+                    }
                 }
 
                 delete clientCanvas[s.id];
             }
-
         }
-
     });
 
 })();
