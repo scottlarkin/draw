@@ -6,136 +6,134 @@
         0 : squareBrush
     }
 
-    var canvasPartitionSize = 10;
-    var useTransparencyChannel = false;
-    var pixelByteSize = useTransparencyChannel ? 4 : 3;
+    //canvasWidth and canvasHeight must be evenly divisible by canvasPartitionSize!!
+    const canvasPartitionSize = 10;
+    const useTransparencyChannel = false;
+    const pixelByteSize = useTransparencyChannel ? 4 : 3;
+    const canvasWidth = 1500;
+    const canvasHeight = 900;
+    const w = canvasWidth / canvasPartitionSize;
+    const h = canvasHeight / canvasPartitionSize;
 
-    exports.Canvas2 = function(id, width, height){
-
-        var ret = {
-            'id': id,
-            'width': width,
-            'height': height,
-            'canvas': (()=>{
-
-                var arr = [];
-
-                let w = width / canvasPartitionSize;
-                let h = height / canvasPartitionSize;
-
-                for(let i = 0; i < canvasPartitionSize; i++){
-                    arr.push([]);
-
-                    for(let j = 0; j < canvasPartitionSize; j++){
-                        var arrBuffer = new ArrayBuffer(w * h * pixelByteSize);
-                        arr[y].push({live: false, buffer: arrBuffer, view: new Uint8Array(arrBuffer)});
-                    }
-                }
-
-                return arr;
-            })()
-        };
-        return ret;
-    };
-
-    function GetDirtyViews(canvas){
-
-        var ret = [];
-
-        for(let i = 0; i < canvasPartitionSize; i++){
-            for(let j = 0; j < canvasPartitionSize; j++){
-
-                 var c = canvas.canvas[i][j];
-
-                if(c.live){
-                   ret.push({x: i, y: j, data: c.buffer});
-                }
-
-            }
-        }
-
-        return ret;
-    }
-
-    function GetP(canvas, x, y){
-
-        //find the canvas segment which holds the requested pixel
-        let w = canvas.width / canvasPartitionSize;
-        let h = canvas.height / canvasPartitionSize;
+   
+    function SetP(canvas, x, y, r, g, b){
+        
         let i = (x / w) << 0;
         let j = (y / h) << 0;
+        let sx = i * w;
+        let sy = j * h;
+
+        var segment = canvas.canvas[i][j];
+        var view = segment.view;
+        segment.live = true;
+
+        let p0 = (w * (y-sy) + (x-sx)) * pixelByteSize;
+
+        view[p0++] = r;
+        view[p0++] = g;
+        view[p0] = b;
+
+    }
+
+    //get a pixel colour at a specific position on a canvas
+    function GetP(canvas, x, y){
+
+        let i = (x / w) << 0;
+        let j = (y / h) << 0;
+        let sx = i * w;
+        let sy = j * h;
         
         var view = canvas.canvas[i][j].view;
 
-        //find the pixel within the segment and return
-        let sx = i * w;
-        let sy = j * h;
         let p0 = (w * (y-sy) + (x-sx)) * pixelByteSize;
-
 
         return {
             r: view[p0++],
             g: view[p0++],
             b: view[p0]
         };
-
     }
 
-    exports.Canvas = function(id, width, height){
-
-        var ret = {
-            'id': id,
-            'width': width,
-            'height': height,
-            'canvas': []
-        };
-
-        init(ret);
-        
-        console.log('New canvas created, ID: ' + id);
-
-        return ret;
-    };
-
+    //fill in a square with a length of brushSize around the given pixel position
     function squareBrush(canvas, brushSize, brushColour, updatePixels){
+        
+        let r = (brushColour >> 16) & 0xFF;
+        let g = (brushColour >> 8) & 0xFF;
+        let b = brushColour & 0xFF;
 
-        return function(pixel){
+        return (pixel) => {            
 
             for(var i = -brushSize; i < brushSize; i++){
                 let x = pixel[0] + i;
                 for(var j = -brushSize; j < brushSize; j++){
                     let y =  pixel[1] + j;
-                    exports.setPixel(canvas, x, y, brushColour);
-                    updatePixels.push([x, y, brushColour]);
+
+                    SetP(canvas, x, y, r, g, b);
+                    //exports.setPixel(canvas, x, y, brushColour);
+                    updatePixels.push([x, y]);
                 }
             }
         }
     }
 
-    function init(canvas){
-    
-        let white = (255 << 16) + (255 << 8) + 255;
+    /* EXPORTS */
+    exports.Canvas = function(id){
 
-        for(var y = 0; y < canvas.height; y++){
+        var ret = {
+            'id': id,
+            'canvas': (()=>{
 
-            canvas.canvas.push([]);
-            for(var x = 0; x < canvas.width; x++){
+                var arr = [];
 
-                canvas.canvas[y].push(white);
+                let byteCount = w * h * pixelByteSize;
+
+                for(let i = 0; i < canvasPartitionSize; i++){
+                    arr.push([]);
+
+                    for(let j = 0; j < canvasPartitionSize; j++){
+
+                        var arrBuffer = new ArrayBuffer(byteCount);
+                        var bufferView = new Uint8Array(arrBuffer);
+
+                        //init all pixels to their max value
+                        for(let n = 0; n < byteCount; n++){
+                            bufferView[n] = 0xFF;
+                        }
+
+                        arr[i].push({live: false, buffer: arrBuffer, view: bufferView});
+                    }
+                }
+
+                return arr;
+            })()
+        };
+
+        console.log('New canvas created, ID: ' + id);
+
+        return ret;
+    };
+
+    //returns a list of canvas segments which have been changed
+    exports.GetDirtyViews = (canvas) => {
+
+        var ret = [];
+
+        for(let i = 0; i < canvasPartitionSize; i++){
+            for(let j = 0; j < canvasPartitionSize; j++){
+
+                var c = canvas.canvas[i][j];
+
+                if(c.live){
+                   ret.push({x: i, y: j, data: c.buffer});
+                }
             }
         }
+
+        return ret;
     }
 
-    //exports
-    exports.setPixel = function(canvas, x, y, val){
-        return canvas.canvas[y][x] = val;
-    }
-
-    exports.getPixel = function(canvasId, x,y){
-        return canvases[canvasId].canvas[y][x];
-    }
-
-    exports.updateCanvas = function(data){
+    //use data from clients to update the internal state of the canvases
+    exports.updateCanvas = (data) => {
 
         let canvas = data.canvas;
         let pixels = data.changes.pixels;
@@ -152,7 +150,8 @@
             brush(pixel);
         });
 
+        //the returned data is broadcast to the other clients
         return {colour: colour, pixels: updatePixels};
-    }
+    };
 
 })();

@@ -20,24 +20,19 @@
     //Multiple instances of this service can run at the same time, rabbit will load balance requests between them
 
     'use strict'
+
+    console.log('router service started');
     
     var amqp = require('amqplib/callback_api');
     var externalip = require('externalip');
 
-    externalip(function (err, ip) {
-        console.log(ip);
-        console.log(err);
-        ip = ip;
-    });
-
     var port = 7000;
 
-    amqp.connect('amqp://localhost', function(err, conn) {
-        conn.createChannel(function(err, ch) {
+    amqp.connect('amqp://localhost', (err, conn) => {
+        conn.createChannel( (err, ch) => {
 
-            externalip(function (err, ip) {
-                console.log(ip);
-                console.log(err);
+            externalip( (err, ip)  =>{
+             
                 var q = 'getAvailableCanvasService';
 
                 ch.assertQueue(q, {durable: false});
@@ -54,9 +49,7 @@
 
                     ch.ack(msg);
                 });
-
             });
-            
         });
     });
     

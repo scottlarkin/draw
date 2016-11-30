@@ -28,8 +28,6 @@
         bs.brushColour = {r:0, g:0, b:0};
         bs.brushColourHex = 0x000000;
         
-        console.log(bs.brushColourHex);
-
         bs.getBrush = function(type, callback){
 
             return brushes[type](callback);

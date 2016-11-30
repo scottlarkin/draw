@@ -3,7 +3,7 @@
     'use strict'
 
     angular.module('draw')
-    .service('canvasService', function($location, socketInterfaceService, brushService){
+    .service('canvasService', function($http, $location, socketInterfaceService, brushService){
 
         function drawPixel (x, y, r, g, b, a) {
             var index = (x + y * cs.canvasWidth) * 4;
@@ -28,41 +28,66 @@
             var updateCanvas = function(){};
 
             if(canvasId){
-                socketInterfaceService.emitMessage('joinCanvas', {canvas: canvasId});
 
-                //tell the socket interface what to do when it gets the message 'updatedPixels'
-                socketInterfaceService.registerResponse('updatedPixels', function(data){
+                //connect to a networked canvas
 
-                    data.pixels.forEach(function(pixel){
-                        drawPixel(pixel[0], pixel[1], data.colour >> 16 & 255, data.colour >> 8 & 255, data.colour & 255, 255);
+                $http({
+                        method: 'GET',
+                        url: '/getAvailableService'
+                })
+                .then(function(response) {
+                    socketInterfaceService.setPort(response.data);
+                    
+                    socketInterfaceService.emitMessage('joinCanvas', {canvas: canvasId});
+
+                    //tell the socket interface what to do when it gets the message 'updatedPixels'
+                    socketInterfaceService.registerResponse('updatedPixels', function(data){
+
+                        data.pixels.forEach(function(pixel){
+                            drawPixel(pixel[0], pixel[1], data.colour >> 16 & 255, data.colour >> 8 & 255, data.colour & 255, 255);
+                        });
+
+                        cs.ctx.putImageData(cs.canvasData, 0, 0);
                     });
 
-                    cs.ctx.putImageData(cs.canvasData, 0, 0);
-                });
+                    //response to the server sending the full canvas data on load
+                    socketInterfaceService.registerResponse('canvasData', function(data){
+       
+                        data.forEach(function(segment){
 
-                //response to the server sending the full canvas data on load
-                socketInterfaceService.registerResponse('canvasData', function(data){
+                            var view = new Uint8Array(segment.data);
 
-                    for(var y = 0; y < 900; y++){
-                        for(var x = 0; x < 1500; x++){
-                          
-                            var col = data[y][x];
-                            drawPixel(x, y, col >> 16 & 255, col >> 8 & 255, col & 255, 255);
-                        }
-                    }
+                            //todo - unhardcode 150, 90, and 3... pass these from server
+                            var xo = segment.x * 150;
+                            var yo = segment.y * 90;
 
-                    cs.ctx.putImageData(cs.canvasData, 0, 0);
+                            for(var y = 0; y < 90; y++){
+                                for(var x = 0; x < 150; x++){
 
-                    loading = false;
-                });
+                                    var p0 = view[(150 * y + x) * 3];
 
-                //what to send to the sever when pixels are changed 
-                updateCanvas = function(changes){
-                    socketInterfaceService.emitMessage('updateCanvas',{ canvas:canvasId, changes: changes});
-                };
+                                    drawPixel(x + xo, y + yo, p0, p0+1, p0+2, 255);
+
+                                }
+                            }
+                        });
+
+                        cs.ctx.putImageData(cs.canvasData, 0, 0);
+
+                        loading = false;
+                    });
+
+                    //what to send to the sever when pixels are changed 
+                    updateCanvas = function(changes){
+                        socketInterfaceService.emitMessage('updateCanvas',{ canvas:canvasId, changes: changes});
+                    };
                 
+                });
+
             }
             else{
+
+                //canvas is local only
                 loading = false;
             }
 
