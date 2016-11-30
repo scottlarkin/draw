@@ -39,7 +39,6 @@
         });
     });
 
-
     exports.sendMessage = (q, message, callback) => {
 
         let msgId = uuid();

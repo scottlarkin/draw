@@ -1,5 +1,5 @@
  
- (function(){
+(function(){
 
     'use strict'
 
@@ -17,6 +17,7 @@
     app.get('/home',(req, res) => {
         
         res.sendFile('clientFiles/index.html', { root: __dirname });
+        
     });
 
     app.get('/getAvailableService/:canvasId', (req, res) => {
@@ -25,4 +26,4 @@
 
     });
 
- })();
+})();

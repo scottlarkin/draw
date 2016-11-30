@@ -9,7 +9,7 @@
     var externalip = require('externalip');
     var port = 7000;
     var canvasCount = 0;
-    const canvasLimit = 3;
+    const canvasLimit = 100;
     const limitReachedMessage = 'This app runs on a cheap (shit) Amazon VM with hardly any RAM or HDD space; due to these reasons there can only be ' + canvasLimit + ' networked canvases at any one time. This limit has been reached. Try again later.';
     var canvases = {};
 
