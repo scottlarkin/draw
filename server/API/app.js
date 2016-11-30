@@ -10,8 +10,8 @@
     app.use(express.static('clientFiles'));
     app.use('/clientFiles', express.static('clientFiles'));
 
-    app.listen(4000, () => {
-        console.log('listening on port 4000');
+    app.listen(80, () => {
+        console.log('listening on port 80');
     });
 
     app.get('/home',(req, res) => {
