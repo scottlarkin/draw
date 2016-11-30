@@ -73,10 +73,11 @@
                     let y =  pixel[1] + j;
 
                     SetP(canvas, x, y, r, g, b);
-                    //exports.setPixel(canvas, x, y, brushColour);
+                    
                     updatePixels.push([x, y]);
                 }
             }
+
         }
     }
 

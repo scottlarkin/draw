@@ -26,7 +26,7 @@
                 
                 ch.consume(q, function reply(msg) {
 
-                    var r = ip + ':' + port;
+                    var r = 'localhost' + ':' + port;
 
                     console.log("checking  " +msg.content.toString() + "   " +  canvases[msg.content.toString()]);
                     if(canvases[msg.content.toString()] !== 1 && canvasCount === canvasLimit){

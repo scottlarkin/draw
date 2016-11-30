@@ -63,7 +63,7 @@
                         cs.ctx.putImageData(cs.canvasData, 0, 0);
                     });
 
-                    //response to the server sending the full canvas data on load
+                    //response to the server sending the canvas data on load
                     socketInterfaceService.registerResponse('canvasData', function(data){
        
                         data.forEach(function(segment){
@@ -77,9 +77,9 @@
                             for(var y = 0; y < 90; y++){
                                 for(var x = 0; x < 150; x++){
 
-                                    var p0 = view[(150 * y + x) * 3];
+                                    var p0 = (150 * y + x) * 3;
 
-                                    drawPixel(x + xo, y + yo, p0, p0+1, p0+2, 255);
+                                    drawPixel(x + xo, y + yo, view[p0], view[p0 + 1], view[p0 + 2], 255);
 
                                 }
                             }
